@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 10
+
+char mochila[MAX][30] = {
+    "Espada",
+    "Pocao",
+    "Escudo"
+};
+  
+int quantidade = 3;
+
+void inserirItem() {
+
+    if (quantidade < MAX) {
+
+        printf("Digite o nome do item: ");
+
+        scanf(" %29[^\n]", mochila[quantidade]);
+
+        quantidade++;
+
+        printf("Item inserido!\n");
+
+    } else {
+        printf("Mochila cheia!\n");
+    }
+}
+
+void listarItens() {
+
+    printf("\n=== ITENS DA MOCHILA ===\n");
+
+    for (int i = 0; i < quantidade; i++) {
+
+        printf("%d - %s\n", i, mochila[i]);
+    }
+}
+
+void buscarItem() {
+
+    char nome[30];
+
+    printf("Digite o item para buscar: ");
+
+    scanf(" %29[^\n]", nome);
+
+    for (int i = 0; i < quantidade; i++) {
+
+        if (strcmp(nome, mochila[i]) == 0) {
+
+            printf("Item encontrado na posição %d\n", i);
+            return;
+        }
+    }
+
+    printf("Item não encontrado.\n");
+}
+
+void removerItem() {
+
+    int posicao;
+
+    printf("Digite a posição do item: ");
+    scanf("%d", &posicao);
+
+    getchar();
+
+    if (posicao >= 0 && posicao < quantidade) {
+
+        for (int i = posicao; i < quantidade - 1; i++) {
+
+            strcpy(mochila[i], mochila[i + 1]);
+        }
+
+        quantidade--;
+
+        printf("Item removido!\n");
+
+    } else {
+
+        printf("Posição inválida!\n");
+    }
+}
+
+int main() {
+
+    int opcao;
+
+    do {
+
+        printf("\n====== MENU ======\n");
+        printf("1 - Inserir item\n");
+        printf("2 - Remover item\n");
+        printf("3 - Listar itens\n");
+        printf("4 - Buscar item\n");
+        printf("0 - Sair\n");
+
+        printf("Escolha: ");
+
+        if(scanf("%d", &opcao) != 1){
+
+            printf("Digite apenas números!\n");
+
+            while(getchar() != '\n');
+
+            opcao = -1;
+        }
+
+        getchar();
+
+        switch(opcao) {
+
+            case 1:
+                inserirItem();
+                break;
+
+            case 2:
+                removerItem();
+                break;
+
+            case 3:
+                listarItens();
+                break;
+
+            case 4:
+                buscarItem();
+                break;
+
+            case 0:
+                printf("Saindo...\n");
+                break;
+
+            default:
+                printf("Opção inválida!\n");
+        }
+
+    } while(opcao != 0);
+
+    return 0;
+}
