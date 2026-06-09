@@ -1,0 +1,107 @@
+#include <xc.h>
+#include <stdio.h>
+
+#define _XTAL_FREQ 8000000
+
+#pragma config FOSC = HS
+#pragma config WDT = OFF
+#pragma config LVP = OFF
+
+// ===== LCD =====
+#define RS LATDbits.LATD0
+#define EN LATDbits.LATD1
+#define D4 LATDbits.LATD2
+#define D5 LATDbits.LATD3
+#define D6 LATDbits.LATD4
+#define D7 LATDbits.LATD5
+
+void pulseEnable() {
+    EN = 1;
+    __delay_us(2);
+    EN = 0;
+}
+
+void sendNibble(unsigned char nibble) {
+    D4 = (nibble >> 0) & 1;
+    D5 = (nibble >> 1) & 1;
+    D6 = (nibble >> 2) & 1;
+    D7 = (nibble >> 3) & 1;
+    pulseEnable();
+}
+
+void LCD_Command(unsigned char cmd) {
+    RS = 0;
+    sendNibble(cmd >> 4);
+    sendNibble(cmd & 0x0F);
+    __delay_ms(2);
+}
+
+void LCD_Char(unsigned char data) {
+    RS = 1;
+    sendNibble(data >> 4);
+    sendNibble(data & 0x0F);
+    __delay_ms(2);
+}
+
+void LCD_String(const char *str) {
+    while(*str) {
+        LCD_Char(*str++);
+    }
+}
+
+void LCD_Init() {
+    TRISD = 0x00;
+    LATD = 0x00;
+
+    __delay_ms(20);
+
+    sendNibble(0x03);
+    __delay_ms(5);
+    sendNibble(0x03);
+    __delay_us(100);
+    sendNibble(0x03);
+    sendNibble(0x02);
+
+    LCD_Command(0x28);
+    LCD_Command(0x0C);
+    LCD_Command(0x06);
+    LCD_Command(0x01);
+}
+
+// ===== ADC =====
+void ADC_Init() {
+    ADCON1 = 0x0E; // AN0 analógico
+    ADCON2 = 0xA9;
+    ADCON0 = 0x01; // liga ADC
+}
+
+unsigned int ADC_Read() {
+    ADCON0bits.GO = 1;
+    while(ADCON0bits.GO);
+    return ((ADRESH << 8) + ADRESL);
+}
+
+// ===== MAIN =====
+void main() {
+
+    unsigned int valor;
+    char buffer[16];
+
+    LCD_Init();
+    ADC_Init();
+
+    while(1) {
+
+        valor = ADC_Read();
+
+        LCD_Command(0x01); // limpa
+        LCD_String("Umidade:");
+
+        LCD_Command(0xC0);
+
+        sprintf(buffer, "%u", valor);
+        LCD_String(buffer);
+
+        __delay_ms(1000);
+    }
+}
